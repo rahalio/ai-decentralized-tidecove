@@ -1,0 +1,609 @@
+openapi: 3.0.3
+info:
+  title: Tidecove
+  version: 0.1.0
+  description: >-
+    Enterprise ai-data exchange with publish-once offers across marketplaces without mandatory central hosting.
+  x-product-slug: ai-decentralized-tidecove
+  x-source: ai-in-decentralized+ai/openminedOcean Protocol Business Whitepaper/
+servers:
+  - url: https://api.example.com
+tags:
+  - name: Assets
+    description: Published data assets and metadata
+  - name: LicenceOffers
+    description: Priced, commons, and compute-only offers
+  - name: Entitlements
+    description: Purchased access grants
+  - name: MarketplaceFronts
+    description: Federated marketplace catalogues
+  - name: KeeperAttestations
+    description: Availability and delivery attestations
+  - name: Settlements
+    description: Buyer charges and seller payouts
+paths:
+  /v1/assets:
+    get:
+      operationId: listAssets
+      tags: [Assets]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListEnvelopeAsset" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      operationId: publishAsset
+      tags: [Assets]
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AssetCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeAsset" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /v1/assets/{assetId}:
+    parameters: [{ $ref: "#/components/parameters/AssetId" }]
+    get:
+      operationId: getAsset
+      tags: [Assets]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeAsset" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/licence-offers:
+    get:
+      operationId: listLicenceOffers
+      tags: [LicenceOffers]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListEnvelopeLicenceOffer" }
+    post:
+      operationId: createLicenceOffer
+      tags: [LicenceOffers]
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LicenceOfferCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeLicenceOffer" }
+  /v1/licence-offers/{offerId}:
+    parameters: [{ $ref: "#/components/parameters/OfferId" }]
+    get:
+      operationId: getLicenceOffer
+      tags: [LicenceOffers]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeLicenceOffer" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      operationId: revokeLicenceOffer
+      tags: [LicenceOffers]
+      summary: Revoke a licence offer for new purchases
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: Revoked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeLicenceOffer" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /v1/entitlements:
+    get:
+      operationId: listEntitlements
+      tags: [Entitlements]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListEnvelopeEntitlement" }
+    post:
+      operationId: purchaseEntitlement
+      tags: [Entitlements]
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EntitlementCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeEntitlement" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /v1/entitlements/{entitlementId}:
+    parameters: [{ $ref: "#/components/parameters/EntitlementId" }]
+    get:
+      operationId: getEntitlement
+      tags: [Entitlements]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeEntitlement" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/marketplace-fronts:
+    get:
+      operationId: listMarketplaceFronts
+      tags: [MarketplaceFronts]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListEnvelopeMarketplaceFront" }
+    post:
+      operationId: registerMarketplaceFront
+      tags: [MarketplaceFronts]
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketplaceFrontCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeMarketplaceFront" }
+  /v1/marketplace-fronts/{frontId}:
+    parameters: [{ $ref: "#/components/parameters/FrontId" }]
+    get:
+      operationId: getMarketplaceFront
+      tags: [MarketplaceFronts]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeMarketplaceFront" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/keeper-attestations:
+    get:
+      operationId: listKeeperAttestations
+      tags: [KeeperAttestations]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListEnvelopeKeeperAttestation" }
+    post:
+      operationId: submitKeeperAttestation
+      tags: [KeeperAttestations]
+      security: [{ BearerAuth: [] }, { ApiKeyAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KeeperAttestationCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeKeeperAttestation" }
+  /v1/settlements:
+    get:
+      operationId: listSettlementStatements
+      tags: [Settlements]
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListEnvelopeSettlementStatement" }
+  /v1/settlements/{statementId}:
+    parameters: [{ $ref: "#/components/parameters/StatementId" }]
+    get:
+      operationId: getSettlementStatement
+      tags: [Settlements]
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataEnvelopeSettlementStatement" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    AssetId:
+      name: assetId
+      in: path
+      required: true
+      schema: { type: string }
+    OfferId:
+      name: offerId
+      in: path
+      required: true
+      schema: { type: string }
+    EntitlementId:
+      name: entitlementId
+      in: path
+      required: true
+      schema: { type: string }
+    FrontId:
+      name: frontId
+      in: path
+      required: true
+      schema: { type: string }
+    AttestationId:
+      name: attestationId
+      in: path
+      required: true
+      schema: { type: string }
+    StatementId:
+      name: statementId
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    BadRequest:
+      description: Bad request
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+
+    ResponseMeta:
+      type: object
+      required: [requestId, timestamp]
+      properties:
+        requestId: { type: string }
+        timestamp: { type: string, format: date-time }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+
+    Asset:
+      type: object
+      required: [id, ownerParticipantId, title, storageMode, status]
+      properties:
+        id: { type: string }
+        ownerParticipantId: { type: string }
+        title: { type: string }
+        storageMode:
+          type: string
+          enum: [hosted, onPremise, computeOnly]
+        status:
+          type: string
+          enum: [draft, published, revoked]
+        schemaSummary: { type: string }
+        createdAt: { type: string, format: date-time }
+    AssetCreate:
+      type: object
+      required: [ownerParticipantId, title, storageMode, status]
+      properties:
+        ownerParticipantId: { type: string }
+        title: { type: string }
+        storageMode:
+          type: string
+          enum: [hosted, onPremise, computeOnly]
+        status:
+          type: string
+          enum: [draft, published, revoked]
+        schemaSummary: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    DataEnvelopeAsset:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: "#/components/schemas/Asset" }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    ListEnvelopeAsset:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/Asset" }
+            nextCursor: { type: string }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    LicenceOffer:
+      type: object
+      required: [id, assetId, licenceClass, priceAmount, currency, status]
+      properties:
+        id: { type: string }
+        assetId: { type: string }
+        licenceClass:
+          type: string
+          enum: [priced, commons, computeOnly]
+        priceAmount: { type: number }
+        currency: { type: string }
+        purposeTags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, amended, revoked]
+    LicenceOfferCreate:
+      type: object
+      required: [assetId, licenceClass, priceAmount, currency, status]
+      properties:
+        assetId: { type: string }
+        licenceClass:
+          type: string
+          enum: [priced, commons, computeOnly]
+        priceAmount: { type: number }
+        currency: { type: string }
+        purposeTags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, amended, revoked]
+
+    DataEnvelopeLicenceOffer:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: "#/components/schemas/LicenceOffer" }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    ListEnvelopeLicenceOffer:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/LicenceOffer" }
+            nextCursor: { type: string }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    Entitlement:
+      type: object
+      required: [id, offerId, buyerParticipantId, status, validUntil]
+      properties:
+        id: { type: string }
+        offerId: { type: string }
+        buyerParticipantId: { type: string }
+        status:
+          type: string
+          enum: [pending, active, revoked, expired]
+        validUntil: { type: string, format: date-time }
+        accessCredentialRef: { type: string }
+    EntitlementCreate:
+      type: object
+      required: [offerId, buyerParticipantId, status, validUntil]
+      properties:
+        offerId: { type: string }
+        buyerParticipantId: { type: string }
+        status:
+          type: string
+          enum: [pending, active, revoked, expired]
+        validUntil: { type: string, format: date-time }
+        accessCredentialRef: { type: string }
+
+    DataEnvelopeEntitlement:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: "#/components/schemas/Entitlement" }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    ListEnvelopeEntitlement:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/Entitlement" }
+            nextCursor: { type: string }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    MarketplaceFront:
+      type: object
+      required: [id, name, takeRateBps, status]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        takeRateBps: { type: integer }
+        status:
+          type: string
+          enum: [active, suspended]
+        vertical: { type: string }
+    MarketplaceFrontCreate:
+      type: object
+      required: [name, takeRateBps, status]
+      properties:
+        name: { type: string }
+        takeRateBps: { type: integer }
+        status:
+          type: string
+          enum: [active, suspended]
+        vertical: { type: string }
+
+    DataEnvelopeMarketplaceFront:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: "#/components/schemas/MarketplaceFront" }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    ListEnvelopeMarketplaceFront:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/MarketplaceFront" }
+            nextCursor: { type: string }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    KeeperAttestation:
+      type: object
+      required: [id, assetId, keeperParticipantId, attestationType, accepted]
+      properties:
+        id: { type: string }
+        assetId: { type: string }
+        keeperParticipantId: { type: string }
+        attestationType:
+          type: string
+          enum: [availability, delivery]
+        accepted: { type: boolean }
+        observedAt: { type: string, format: date-time }
+    KeeperAttestationCreate:
+      type: object
+      required: [assetId, keeperParticipantId, attestationType, accepted]
+      properties:
+        assetId: { type: string }
+        keeperParticipantId: { type: string }
+        attestationType:
+          type: string
+          enum: [availability, delivery]
+        accepted: { type: boolean }
+        observedAt: { type: string, format: date-time }
+
+    DataEnvelopeKeeperAttestation:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: "#/components/schemas/KeeperAttestation" }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    ListEnvelopeKeeperAttestation:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/KeeperAttestation" }
+            nextCursor: { type: string }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    SettlementStatement:
+      type: object
+      required: [id, participantId, periodStart, periodEnd, currency, netAmount]
+      properties:
+        id: { type: string }
+        participantId: { type: string }
+        periodStart: { type: string, format: date-time }
+        periodEnd: { type: string, format: date-time }
+        currency: { type: string }
+        netAmount: { type: number }
+    SettlementStatementCreate:
+      type: object
+      required: [participantId, periodStart, periodEnd, currency, netAmount]
+      properties:
+        participantId: { type: string }
+        periodStart: { type: string, format: date-time }
+        periodEnd: { type: string, format: date-time }
+        currency: { type: string }
+        netAmount: { type: number }
+
+    DataEnvelopeSettlementStatement:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: "#/components/schemas/SettlementStatement" }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
+    ListEnvelopeSettlementStatement:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/SettlementStatement" }
+            nextCursor: { type: string }
+        meta: { $ref: "#/components/schemas/ResponseMeta" }
