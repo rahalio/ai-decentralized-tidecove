@@ -1,0 +1,110 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Keepers API
+  version: 0.1.0
+  description: Keeper attestations and economic penalties (BR-8).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: kpr
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: KeeperAttestations
+  - name: KeeperPenalties
+paths:
+  /v1/keeper-attestations:
+    get:
+      operationId: listKeeperAttestations
+      tags: [KeeperAttestations]
+      x-repository: KeeperAttestation
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: assetId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./keepers.schemas.yaml#/components/schemas/KeeperAttestationListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: submitKeeperAttestation
+      tags: [KeeperAttestations]
+      x-repository: KeeperAttestation
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./keepers.schemas.yaml#/components/schemas/KeeperAttestationCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./keepers.schemas.yaml#/components/schemas/KeeperAttestationResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/keeper-penalties:
+    get:
+      operationId: listKeeperPenalties
+      tags: [KeeperPenalties]
+      x-repository: KeeperPenalty
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./keepers.schemas.yaml#/components/schemas/KeeperPenaltyListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createKeeperPenalty
+      tags: [KeeperPenalties]
+      x-repository: KeeperPenalty
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./keepers.schemas.yaml#/components/schemas/KeeperPenaltyCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./keepers.schemas.yaml#/components/schemas/KeeperPenaltyResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

@@ -1,0 +1,91 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Settlements API
+  version: 0.1.0
+  description: Period statements tying purchases, refunds, and access to invoices (BR-9).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: set
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: Settlements
+paths:
+  /v1/settlements:
+    get:
+      operationId: listSettlementStatements
+      tags: [Settlements]
+      x-repository: SettlementStatement
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: participantId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./settlements.schemas.yaml#/components/schemas/SettlementStatementListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: generateSettlementStatement
+      tags: [Settlements]
+      x-repository: SettlementStatement
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./settlements.schemas.yaml#/components/schemas/SettlementStatementCreate
+      responses:
+        '201':
+          description: Generated
+          content:
+            application/json:
+              schema:
+                $ref: ./settlements.schemas.yaml#/components/schemas/SettlementStatementResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/settlements/{statementId}:
+    get:
+      operationId: getSettlementStatement
+      tags: [Settlements]
+      x-repository: SettlementStatement
+      parameters:
+        - name: statementId
+          in: path
+          required: true
+          schema:
+            $ref: ./settlements.schemas.yaml#/components/schemas/SettlementStatementId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./settlements.schemas.yaml#/components/schemas/SettlementStatementResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

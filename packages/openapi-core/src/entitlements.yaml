@@ -1,0 +1,220 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Entitlements API
+  version: 0.1.0
+  description: |
+    Purchase entitlements, access credentials, and compute-to-data jobs (BR-3, BR-7, BR-11).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: ent
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: Entitlements
+  - name: AccessCredentials
+  - name: ComputeJobs
+paths:
+  /v1/entitlements:
+    get:
+      operationId: listEntitlements
+      tags: [Entitlements]
+      x-repository: Entitlement
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: buyerParticipantId
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, active, revoked, expired, blocked]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/EntitlementListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: purchaseEntitlement
+      tags: [Entitlements]
+      summary: Purchase with purpose gate; may return blocked status (BR-7)
+      x-repository: Entitlement
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./entitlements.schemas.yaml#/components/schemas/EntitlementCreate
+      responses:
+        '201':
+          description: Created (or blocked with purposeBlockReason)
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/EntitlementResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/entitlements/{entitlementId}:
+    get:
+      operationId: getEntitlement
+      tags: [Entitlements]
+      x-repository: Entitlement
+      parameters:
+        - name: entitlementId
+          in: path
+          required: true
+          schema:
+            $ref: ./entitlements.schemas.yaml#/components/schemas/EntitlementId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/EntitlementResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/access-credentials/{credentialId}:
+    get:
+      operationId: getAccessCredential
+      tags: [AccessCredentials]
+      x-repository: AccessCredential
+      parameters:
+        - name: credentialId
+          in: path
+          required: true
+          schema:
+            $ref: ./entitlements.schemas.yaml#/components/schemas/AccessCredentialId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/AccessCredentialResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/compute-jobs:
+    get:
+      operationId: listComputeJobs
+      tags: [ComputeJobs]
+      x-repository: ComputeJob
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/ComputeJobListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: scheduleComputeJob
+      tags: [ComputeJobs]
+      x-repository: ComputeJob
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./entitlements.schemas.yaml#/components/schemas/ComputeJobCreate
+      responses:
+        '201':
+          description: Scheduled
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/ComputeJobResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/compute-jobs/{jobId}:
+    get:
+      operationId: getComputeJob
+      tags: [ComputeJobs]
+      x-repository: ComputeJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            $ref: ./entitlements.schemas.yaml#/components/schemas/ComputeJobId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/ComputeJobResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: cancelComputeJob
+      tags: [ComputeJobs]
+      summary: Cancel a queued or running job
+      x-repository: ComputeJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            $ref: ./entitlements.schemas.yaml#/components/schemas/ComputeJobId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: ./entitlements.schemas.yaml#/components/schemas/ComputeJobResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

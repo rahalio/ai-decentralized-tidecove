@@ -1,0 +1,37 @@
+apis:
+  identity:
+    root: src/identity.yaml
+  assets:
+    root: src/assets.yaml
+  licences:
+    root: src/licences.yaml
+  entitlements:
+    root: src/entitlements.yaml
+  marketplace:
+    root: src/marketplace.yaml
+  keepers:
+    root: src/keepers.yaml
+  settlements:
+    root: src/settlements.yaml
+  participants:
+    root: src/participants.yaml
+  compliance:
+    root: src/compliance.yaml
+
+extends:
+  - recommended
+
+rules:
+  no-unused-components: off
+  operation-4xx-response: warn
+  operation-summary: warn
+  info-license: off
+  info-license-url: off
+  tag-description: off
+  operation-operationId: error
+  no-invalid-media-type-examples: off
+
+theme:
+  openapi:
+    generateCodeSamples:
+      languages: []

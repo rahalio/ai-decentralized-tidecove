@@ -1,0 +1,52 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2022"
+    ],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "@services/*": [
+        "../services/src/*"
+      ],
+      "@adapters/*": [
+        "./src/*"
+      ],
+      "@tidecove/core": [
+        "../../packages/core/dist/index.d.ts"
+      ],
+      "@tidecove/core/*": [
+        "../../packages/core/dist/*"
+      ],
+      "@tidecove/services": [
+        "../services/dist/index.d.ts"
+      ],
+      "@tidecove/services/*": [
+        "../services/dist/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

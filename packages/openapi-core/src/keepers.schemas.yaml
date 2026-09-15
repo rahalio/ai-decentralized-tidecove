@@ -1,0 +1,191 @@
+openapi: 3.1.0
+info:
+  title: Keepers schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    KeeperAttestationId:
+      type: string
+      pattern: '^kpr_[0-9a-hjkmnp-tv-z]{26}$'
+    KeeperPenaltyId:
+      type: string
+      pattern: '^kpp_[0-9a-hjkmnp-tv-z]{26}$'
+
+    KeeperAttestation:
+      type: object
+      required: [id, assetId, keeperParticipantId, attestationType, accepted, createdAt, updatedAt]
+      x-dynamodb:
+        domain: KEEPERS
+        entityType: KEEPER_ATTESTATION
+        entityTypePk: KEEPER_ATTESTATIONS
+        pkPattern: entity
+        pkPatternTemplate: "KEEPER_ATTESTATION#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/KeeperAttestationId'
+        assetId:
+          type: string
+        entitlementId:
+          type: string
+        keeperParticipantId:
+          type: string
+        attestationType:
+          type: string
+          enum: [availability, delivery]
+        accepted:
+          type: boolean
+        observedAt:
+          type: string
+          format: date-time
+        slaMet:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    KeeperAttestationCreate:
+      type: object
+      required: [assetId, keeperParticipantId, attestationType, accepted]
+      properties:
+        assetId:
+          type: string
+        entitlementId:
+          type: string
+        keeperParticipantId:
+          type: string
+        attestationType:
+          type: string
+          enum: [availability, delivery]
+        accepted:
+          type: boolean
+        observedAt:
+          type: string
+          format: date-time
+        slaMet:
+          type: boolean
+
+    KeeperPenalty:
+      type: object
+      required: [id, keeperParticipantId, attestationId, amount, currency, status, createdAt, updatedAt]
+      x-dynamodb:
+        domain: KEEPERS
+        entityType: KEEPER_PENALTY
+        entityTypePk: KEEPER_PENALTIES
+        pkPattern: entity
+        pkPatternTemplate: "KEEPER_PENALTY#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/KeeperPenaltyId'
+        keeperParticipantId:
+          type: string
+        attestationId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        reason:
+          type: string
+        visibleToCounterparties:
+          type: boolean
+          default: true
+        status:
+          type: string
+          enum: [open, applied, waived, disputed]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    KeeperPenaltyCreate:
+      type: object
+      required: [keeperParticipantId, attestationId, amount, currency]
+      properties:
+        keeperParticipantId:
+          type: string
+        attestationId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        reason:
+          type: string
+
+    KeeperAttestationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/KeeperAttestation'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    KeeperAttestationListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeeperAttestation'
+        nextCursor:
+          type: string
+
+    KeeperAttestationListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/KeeperAttestationListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+
+    KeeperPenaltyResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/KeeperPenalty'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    KeeperPenaltyListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeeperPenalty'
+        nextCursor:
+          type: string
+
+    KeeperPenaltyListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/KeeperPenaltyListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

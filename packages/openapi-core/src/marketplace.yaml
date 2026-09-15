@@ -1,0 +1,109 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Marketplace API
+  version: 0.1.0
+  description: Federated marketplace fronts over shared offers (BR-2, BR-6).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: mkt
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: MarketplaceFronts
+paths:
+  /v1/marketplace-fronts:
+    get:
+      operationId: listMarketplaceFronts
+      tags: [MarketplaceFronts]
+      x-repository: MarketplaceFront
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./marketplace.schemas.yaml#/components/schemas/MarketplaceFrontListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: registerMarketplaceFront
+      tags: [MarketplaceFronts]
+      x-repository: MarketplaceFront
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./marketplace.schemas.yaml#/components/schemas/MarketplaceFrontCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./marketplace.schemas.yaml#/components/schemas/MarketplaceFrontResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/marketplace-fronts/{frontId}:
+    parameters:
+      - name: frontId
+        in: path
+        required: true
+        schema:
+          $ref: ./marketplace.schemas.yaml#/components/schemas/MarketplaceFrontId
+    get:
+      operationId: getMarketplaceFront
+      tags: [MarketplaceFronts]
+      x-repository: MarketplaceFront
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./marketplace.schemas.yaml#/components/schemas/MarketplaceFrontResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: updateMarketplaceFront
+      tags: [MarketplaceFronts]
+      x-repository: MarketplaceFront
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./marketplace.schemas.yaml#/components/schemas/MarketplaceFrontUpdate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./marketplace.schemas.yaml#/components/schemas/MarketplaceFrontResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

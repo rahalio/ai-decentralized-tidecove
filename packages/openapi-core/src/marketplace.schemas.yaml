@@ -1,0 +1,122 @@
+openapi: 3.1.0
+info:
+  title: Marketplace schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    MarketplaceFrontId:
+      type: string
+      pattern: '^mkt_[0-9a-hjkmnp-tv-z]{26}$'
+
+    MarketplaceFront:
+      type: object
+      required: [id, name, takeRateBps, status, createdAt, updatedAt]
+      x-dynamodb:
+        domain: MARKETPLACE
+        entityType: MARKETPLACE_FRONT
+        entityTypePk: MARKETPLACE_FRONTS
+        pkPattern: entity
+        pkPatternTemplate: "MARKETPLACE_FRONT#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/MarketplaceFrontId'
+        name:
+          type: string
+        vertical:
+          type: string
+        takeRateBps:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          description: Single disclosed take-rate line (BR-6).
+        fiatOnRampEnabled:
+          type: boolean
+          default: true
+        indexedOfferIds:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, suspended]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MarketplaceFrontCreate:
+      type: object
+      required: [name, takeRateBps]
+      properties:
+        name:
+          type: string
+        vertical:
+          type: string
+        takeRateBps:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        fiatOnRampEnabled:
+          type: boolean
+        indexedOfferIds:
+          type: array
+          items:
+            type: string
+
+    MarketplaceFrontUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        vertical:
+          type: string
+        takeRateBps:
+          type: integer
+        fiatOnRampEnabled:
+          type: boolean
+        indexedOfferIds:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, suspended]
+
+    MarketplaceFrontResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/MarketplaceFront'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    MarketplaceFrontListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceFront'
+        nextCursor:
+          type: string
+
+    MarketplaceFrontListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/MarketplaceFrontListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

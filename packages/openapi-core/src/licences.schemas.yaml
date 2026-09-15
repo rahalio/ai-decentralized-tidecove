@@ -1,0 +1,147 @@
+openapi: 3.1.0
+info:
+  title: Licences schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    LicenceOfferId:
+      type: string
+      pattern: '^lic_[0-9a-hjkmnp-tv-z]{26}$'
+
+    LicenceOffer:
+      type: object
+      required: [id, assetId, licenceClass, priceAmount, currency, status, createdAt, updatedAt]
+      x-dynamodb:
+        domain: LICENCES
+        entityType: LICENCE_OFFER
+        entityTypePk: LICENCE_OFFERS
+        pkPattern: entity
+        pkPatternTemplate: "LICENCE_OFFER#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/LicenceOfferId'
+        assetId:
+          type: string
+        licenceClass:
+          type: string
+          enum: [priced, commons, computeOnly]
+        priceAmount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        purposeTags:
+          type: array
+          items:
+            type: string
+        lawfulBasis:
+          type: string
+        revokeSlaHours:
+          type: integer
+          minimum: 0
+          description: SLA for revoke/amend to affect new purchases (BR-4).
+        grandfatherActiveEntitlements:
+          type: boolean
+          default: true
+        marketplaceFrontIds:
+          type: array
+          items:
+            type: string
+          description: Fronts indexing this portable offer (BR-2).
+        status:
+          type: string
+          enum: [active, amended, revoked]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LicenceOfferCreate:
+      type: object
+      required: [assetId, licenceClass, priceAmount, currency]
+      properties:
+        assetId:
+          type: string
+        licenceClass:
+          type: string
+          enum: [priced, commons, computeOnly]
+        priceAmount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        purposeTags:
+          type: array
+          items:
+            type: string
+        lawfulBasis:
+          type: string
+        revokeSlaHours:
+          type: integer
+        grandfatherActiveEntitlements:
+          type: boolean
+        marketplaceFrontIds:
+          type: array
+          items:
+            type: string
+
+    LicenceOfferAmend:
+      type: object
+      properties:
+        priceAmount:
+          type: number
+        purposeTags:
+          type: array
+          items:
+            type: string
+        lawfulBasis:
+          type: string
+        revokeSlaHours:
+          type: integer
+        grandfatherActiveEntitlements:
+          type: boolean
+        marketplaceFrontIds:
+          type: array
+          items:
+            type: string
+
+    LicenceOfferResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/LicenceOffer'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    LicenceOfferListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LicenceOffer'
+        nextCursor:
+          type: string
+
+    LicenceOfferListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/LicenceOfferListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

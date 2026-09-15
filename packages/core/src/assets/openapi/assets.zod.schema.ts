@@ -1,0 +1,537 @@
+import { makeApi, Zodios, type ZodiosOptions } from '@zodios/core';
+import { z } from 'zod';
+
+const publishAsset_Body = z
+  .object({
+    ownerParticipantId: z.string(),
+    title: z.string().min(1).max(200),
+    schemaSummary: z.string().optional(),
+    storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+    storagePointer: z.string().optional(),
+    gravityBound: z.boolean().optional(),
+    transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+    personalData: z.boolean().optional(),
+    complianceTagIds: z.array(z.string()).optional(),
+    status: z.enum(['draft', 'published']).optional().default('draft'),
+  })
+  .passthrough();
+const updateAsset_Body = z
+  .object({
+    title: z.string(),
+    schemaSummary: z.string(),
+    storagePointer: z.string(),
+    gravityBound: z.boolean(),
+    transferabilityThresholdBytes: z.number().int(),
+    personalData: z.boolean(),
+    complianceTagIds: z.array(z.string()),
+    status: z.enum(['draft', 'published', 'revoked']),
+  })
+  .partial()
+  .passthrough();
+const Problem = z
+  .object({
+    type: z.string().url(),
+    title: z.string(),
+    status: z.number().int(),
+    detail: z.string(),
+    instance: z.string().url(),
+    code: z.string(),
+  })
+  .partial()
+  .passthrough();
+const AssetId = z.string();
+const Asset = z
+  .object({
+    id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+    ownerParticipantId: z.string(),
+    title: z.string().min(1).max(200),
+    schemaSummary: z.string().optional(),
+    storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+    storagePointer: z.string().optional(),
+    gravityBound: z.boolean().optional(),
+    transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+    personalData: z.boolean().optional().default(false),
+    complianceTagIds: z.array(z.string()).optional(),
+    status: z.enum(['draft', 'published', 'revoked']),
+    createdAt: z.string().datetime({ offset: true }),
+    updatedAt: z.string().datetime({ offset: true }),
+  })
+  .passthrough();
+const AssetListData = z
+  .object({
+    items: z.array(
+      z
+        .object({
+          id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+          ownerParticipantId: z.string(),
+          title: z.string().min(1).max(200),
+          schemaSummary: z.string().optional(),
+          storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+          storagePointer: z.string().optional(),
+          gravityBound: z.boolean().optional(),
+          transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+          personalData: z.boolean().optional().default(false),
+          complianceTagIds: z.array(z.string()).optional(),
+          status: z.enum(['draft', 'published', 'revoked']),
+          createdAt: z.string().datetime({ offset: true }),
+          updatedAt: z.string().datetime({ offset: true }),
+        })
+        .passthrough()
+    ),
+    nextCursor: z.string().optional(),
+  })
+  .passthrough();
+const ResponseMeta = z
+  .object({
+    requestId: z.string().uuid(),
+    correlationId: z.string(),
+    generatedAt: z.string().datetime({ offset: true }),
+  })
+  .partial()
+  .passthrough();
+const AssetListResponse = z
+  .object({
+    data: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+              ownerParticipantId: z.string(),
+              title: z.string().min(1).max(200),
+              schemaSummary: z.string().optional(),
+              storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+              storagePointer: z.string().optional(),
+              gravityBound: z.boolean().optional(),
+              transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+              personalData: z.boolean().optional().default(false),
+              complianceTagIds: z.array(z.string()).optional(),
+              status: z.enum(['draft', 'published', 'revoked']),
+              createdAt: z.string().datetime({ offset: true }),
+              updatedAt: z.string().datetime({ offset: true }),
+            })
+            .passthrough()
+        ),
+        nextCursor: z.string().optional(),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const AssetCreate = z
+  .object({
+    ownerParticipantId: z.string(),
+    title: z.string().min(1).max(200),
+    schemaSummary: z.string().optional(),
+    storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+    storagePointer: z.string().optional(),
+    gravityBound: z.boolean().optional(),
+    transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+    personalData: z.boolean().optional(),
+    complianceTagIds: z.array(z.string()).optional(),
+    status: z.enum(['draft', 'published']).optional().default('draft'),
+  })
+  .passthrough();
+const AssetResponse = z
+  .object({
+    data: z
+      .object({
+        id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+        ownerParticipantId: z.string(),
+        title: z.string().min(1).max(200),
+        schemaSummary: z.string().optional(),
+        storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+        storagePointer: z.string().optional(),
+        gravityBound: z.boolean().optional(),
+        transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+        personalData: z.boolean().optional().default(false),
+        complianceTagIds: z.array(z.string()).optional(),
+        status: z.enum(['draft', 'published', 'revoked']),
+        createdAt: z.string().datetime({ offset: true }),
+        updatedAt: z.string().datetime({ offset: true }),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const AssetUpdate = z
+  .object({
+    title: z.string(),
+    schemaSummary: z.string(),
+    storagePointer: z.string(),
+    gravityBound: z.boolean(),
+    transferabilityThresholdBytes: z.number().int(),
+    personalData: z.boolean(),
+    complianceTagIds: z.array(z.string()),
+    status: z.enum(['draft', 'published', 'revoked']),
+  })
+  .partial()
+  .passthrough();
+
+export const schemas: any = {
+  publishAsset_Body,
+  updateAsset_Body,
+  Problem,
+  AssetId,
+  Asset,
+  AssetListData,
+  ResponseMeta,
+  AssetListResponse,
+  AssetCreate,
+  AssetResponse,
+  AssetUpdate,
+};
+
+const endpoints = makeApi([
+  {
+    method: 'get',
+    path: '/v1/assets',
+    alias: 'listAssets',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'cursor',
+        type: 'Query',
+        schema: z.string().optional(),
+      },
+      {
+        name: 'limit',
+        type: 'Query',
+        schema: z.number().int().gte(1).lte(100).optional().default(25),
+      },
+      {
+        name: 'status',
+        type: 'Query',
+        schema: z.enum(['draft', 'published', 'revoked']).optional(),
+      },
+      {
+        name: 'licenceClassHint',
+        type: 'Query',
+        schema: z.enum(['priced', 'commons', 'computeOnly']).optional(),
+      },
+      {
+        name: 'gravityBound',
+        type: 'Query',
+        schema: z.boolean().optional(),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            items: z.array(
+              z
+                .object({
+                  id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+                  ownerParticipantId: z.string(),
+                  title: z.string().min(1).max(200),
+                  schemaSummary: z.string().optional(),
+                  storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+                  storagePointer: z.string().optional(),
+                  gravityBound: z.boolean().optional(),
+                  transferabilityThresholdBytes: z
+                    .number()
+                    .int()
+                    .gte(0)
+                    .optional(),
+                  personalData: z.boolean().optional().default(false),
+                  complianceTagIds: z.array(z.string()).optional(),
+                  status: z.enum(['draft', 'published', 'revoked']),
+                  createdAt: z.string().datetime({ offset: true }),
+                  updatedAt: z.string().datetime({ offset: true }),
+                })
+                .passthrough()
+            ),
+            nextCursor: z.string().optional(),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'post',
+    path: '/v1/assets',
+    alias: 'publishAsset',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: publishAsset_Body,
+      },
+      {
+        name: 'Idempotency-Key',
+        type: 'Header',
+        schema: z.string().min(1).max(128),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+            ownerParticipantId: z.string(),
+            title: z.string().min(1).max(200),
+            schemaSummary: z.string().optional(),
+            storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+            storagePointer: z.string().optional(),
+            gravityBound: z.boolean().optional(),
+            transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+            personalData: z.boolean().optional().default(false),
+            complianceTagIds: z.array(z.string()).optional(),
+            status: z.enum(['draft', 'published', 'revoked']),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/assets/:assetId',
+    alias: 'getAsset',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'assetId',
+        type: 'Path',
+        schema: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+            ownerParticipantId: z.string(),
+            title: z.string().min(1).max(200),
+            schemaSummary: z.string().optional(),
+            storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+            storagePointer: z.string().optional(),
+            gravityBound: z.boolean().optional(),
+            transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+            personalData: z.boolean().optional().default(false),
+            complianceTagIds: z.array(z.string()).optional(),
+            status: z.enum(['draft', 'published', 'revoked']),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'patch',
+    path: '/v1/assets/:assetId',
+    alias: 'updateAsset',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: updateAsset_Body,
+      },
+      {
+        name: 'assetId',
+        type: 'Path',
+        schema: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^ast_[0-9a-hjkmnp-tv-z]{26}$/),
+            ownerParticipantId: z.string(),
+            title: z.string().min(1).max(200),
+            schemaSummary: z.string().optional(),
+            storageMode: z.enum(['hosted', 'onPremise', 'computeOnly']),
+            storagePointer: z.string().optional(),
+            gravityBound: z.boolean().optional(),
+            transferabilityThresholdBytes: z.number().int().gte(0).optional(),
+            personalData: z.boolean().optional().default(false),
+            complianceTagIds: z.array(z.string()).optional(),
+            status: z.enum(['draft', 'published', 'revoked']),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+]);
+
+export const api: any = new Zodios(
+  'https://api.ddd-codegen-starter.local/v1',
+  endpoints
+);
+
+export function createApiClient(baseUrl: string, options?: ZodiosOptions): any {
+  return new Zodios(baseUrl, endpoints, options);
+}

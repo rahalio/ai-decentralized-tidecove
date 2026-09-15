@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Participants API
+  version: 0.1.0
+  description: Vetted enterprise participant registry and disputes (BR-12).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: ptc
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: Participants
+  - name: Disputes
+paths:
+  /v1/participants:
+    get:
+      operationId: listParticipants
+      tags: [Participants]
+      x-repository: Participant
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [seller, buyer, marketplaceOperator, keeper, masher, auditor, platform]
+        - name: vettingStatus
+          in: query
+          schema:
+            type: string
+            enum: [unvetted, pending, vetted, rejected]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/ParticipantListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: registerParticipant
+      tags: [Participants]
+      x-repository: Participant
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./participants.schemas.yaml#/components/schemas/ParticipantCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/ParticipantResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/participants/{participantId}:
+    parameters:
+      - name: participantId
+        in: path
+        required: true
+        schema:
+          $ref: ./participants.schemas.yaml#/components/schemas/ParticipantId
+    get:
+      operationId: getParticipant
+      tags: [Participants]
+      x-repository: Participant
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/ParticipantResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: updateParticipant
+      tags: [Participants]
+      x-repository: Participant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./participants.schemas.yaml#/components/schemas/ParticipantUpdate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/ParticipantResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/participants/{participantId}/suspend:
+    post:
+      operationId: suspendParticipant
+      tags: [Participants]
+      x-repository: Participant
+      parameters:
+        - name: participantId
+          in: path
+          required: true
+          schema:
+            $ref: ./participants.schemas.yaml#/components/schemas/ParticipantId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Suspended
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/ParticipantResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/disputes:
+    get:
+      operationId: listDisputes
+      tags: [Disputes]
+      x-repository: Dispute
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/DisputeListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: openDispute
+      tags: [Disputes]
+      x-repository: Dispute
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./participants.schemas.yaml#/components/schemas/DisputeCreate
+      responses:
+        '201':
+          description: Opened
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/DisputeResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/disputes/{disputeId}/resolve:
+    post:
+      operationId: resolveDispute
+      tags: [Disputes]
+      x-repository: Dispute
+      parameters:
+        - name: disputeId
+          in: path
+          required: true
+          schema:
+            $ref: ./participants.schemas.yaml#/components/schemas/DisputeId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./participants.schemas.yaml#/components/schemas/DisputeResolve
+      responses:
+        '200':
+          description: Resolved
+          content:
+            application/json:
+              schema:
+                $ref: ./participants.schemas.yaml#/components/schemas/DisputeResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

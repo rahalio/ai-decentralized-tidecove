@@ -1,0 +1,253 @@
+openapi: 3.1.0
+info:
+  title: Entitlements schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    EntitlementId:
+      type: string
+      pattern: '^ent_[0-9a-hjkmnp-tv-z]{26}$'
+    AccessCredentialId:
+      type: string
+      pattern: '^acr_[0-9a-hjkmnp-tv-z]{26}$'
+    ComputeJobId:
+      type: string
+      pattern: '^cjd_[0-9a-hjkmnp-tv-z]{26}$'
+
+    Entitlement:
+      type: object
+      required: [id, offerId, buyerParticipantId, status, validUntil, createdAt, updatedAt]
+      x-dynamodb:
+        domain: ENTITLEMENTS
+        entityType: ENTITLEMENT
+        entityTypePk: ENTITLEMENTS
+        pkPattern: entity
+        pkPatternTemplate: "ENTITLEMENT#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/EntitlementId'
+        offerId:
+          type: string
+        assetId:
+          type: string
+        buyerParticipantId:
+          type: string
+        marketplaceFrontId:
+          type: string
+        takeRateBps:
+          type: integer
+          minimum: 0
+          description: Disclosed marketplace take-rate at purchase (BR-6).
+        declaredPurpose:
+          type: string
+        status:
+          type: string
+          enum: [pending, active, revoked, expired, blocked]
+        validUntil:
+          type: string
+          format: date-time
+        accessCredentialId:
+          type: string
+        computeJobId:
+          type: string
+        purposeBlockReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EntitlementCreate:
+      type: object
+      required: [offerId, buyerParticipantId, declaredPurpose]
+      properties:
+        offerId:
+          type: string
+        buyerParticipantId:
+          type: string
+        marketplaceFrontId:
+          type: string
+        declaredPurpose:
+          type: string
+          description: Buyer purpose for PD gate (BR-7).
+        validUntil:
+          type: string
+          format: date-time
+
+    AccessCredential:
+      type: object
+      required: [id, entitlementId, tokenHint, expiresAt, createdAt, updatedAt]
+      x-dynamodb:
+        domain: ENTITLEMENTS
+        entityType: ACCESS_CREDENTIAL
+        entityTypePk: ACCESS_CREDENTIALS
+        pkPattern: entity
+        pkPatternTemplate: "ACCESS_CREDENTIAL#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/AccessCredentialId'
+        entitlementId:
+          type: string
+        tokenHint:
+          type: string
+          description: Non-secret credential hint for UI display.
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ComputeJob:
+      type: object
+      required: [id, entitlementId, assetId, status, createdAt, updatedAt]
+      x-dynamodb:
+        domain: ENTITLEMENTS
+        entityType: COMPUTE_JOB
+        entityTypePk: COMPUTE_JOBS
+        pkPattern: entity
+        pkPatternTemplate: "COMPUTE_JOB#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/ComputeJobId'
+        entitlementId:
+          type: string
+        assetId:
+          type: string
+        sellerEndpoint:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, succeeded, failed, cancelled]
+        resultPointer:
+          type: string
+          description: Allowed outputs only — never raw asset export.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ComputeJobCreate:
+      type: object
+      required: [entitlementId]
+      properties:
+        entitlementId:
+          type: string
+        sellerEndpoint:
+          type: string
+
+    EntitlementResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Entitlement'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    EntitlementListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entitlement'
+        nextCursor:
+          type: string
+
+    EntitlementListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/EntitlementListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+
+    AccessCredentialResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AccessCredential'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    AccessCredentialListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessCredential'
+        nextCursor:
+          type: string
+
+    AccessCredentialListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AccessCredentialListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+
+    ComputeJobResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ComputeJob'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    ComputeJobListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComputeJob'
+        nextCursor:
+          type: string
+
+    ComputeJobListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ComputeJobListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

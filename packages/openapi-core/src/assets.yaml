@@ -1,0 +1,132 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Assets API
+  version: 0.1.0
+  description: |
+    Asset publishing and metadata registry. Sellers publish ownership, licence
+    pointers, and storage location without hosting raw payloads at Tidecove (BR-1).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: ast
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: Assets
+    description: Published data assets and metadata
+paths:
+  /v1/assets:
+    get:
+      operationId: listAssets
+      tags: [Assets]
+      summary: List published assets
+      x-repository: Asset
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, revoked]
+        - name: licenceClassHint
+          in: query
+          schema:
+            type: string
+            enum: [priced, commons, computeOnly]
+        - name: gravityBound
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./assets.schemas.yaml#/components/schemas/AssetListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: publishAsset
+      tags: [Assets]
+      summary: Publish or draft an asset (no mandatory raw upload)
+      x-repository: Asset
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./assets.schemas.yaml#/components/schemas/AssetCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./assets.schemas.yaml#/components/schemas/AssetResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/assets/{assetId}:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          $ref: ./assets.schemas.yaml#/components/schemas/AssetId
+    get:
+      operationId: getAsset
+      tags: [Assets]
+      x-repository: Asset
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./assets.schemas.yaml#/components/schemas/AssetResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: updateAsset
+      tags: [Assets]
+      x-repository: Asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./assets.schemas.yaml#/components/schemas/AssetUpdate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./assets.schemas.yaml#/components/schemas/AssetResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

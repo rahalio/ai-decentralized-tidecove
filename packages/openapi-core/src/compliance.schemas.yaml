@@ -1,0 +1,189 @@
+openapi: 3.1.0
+info:
+  title: Compliance schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ComplianceTagId:
+      type: string
+      pattern: '^cmp_[0-9a-hjkmnp-tv-z]{26}$'
+    PurposeGateDecisionId:
+      type: string
+      pattern: '^pgd_[0-9a-hjkmnp-tv-z]{26}$'
+
+    ComplianceTag:
+      type: object
+      required: [id, assetId, lawfulBasis, purposeTags, createdAt, updatedAt]
+      x-dynamodb:
+        domain: COMPLIANCE
+        entityType: COMPLIANCE_TAG
+        entityTypePk: COMPLIANCE_TAGS
+        pkPattern: entity
+        pkPatternTemplate: "COMPLIANCE_TAG#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/ComplianceTagId'
+        assetId:
+          type: string
+        lawfulBasis:
+          type: string
+        purposeTags:
+          type: array
+          items:
+            type: string
+        personalData:
+          type: boolean
+          default: true
+        diligencePackUri:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ComplianceTagCreate:
+      type: object
+      required: [assetId, lawfulBasis, purposeTags]
+      properties:
+        assetId:
+          type: string
+        lawfulBasis:
+          type: string
+        purposeTags:
+          type: array
+          items:
+            type: string
+        personalData:
+          type: boolean
+
+    ComplianceTagUpdate:
+      type: object
+      properties:
+        lawfulBasis:
+          type: string
+        purposeTags:
+          type: array
+          items:
+            type: string
+        diligencePackUri:
+          type: string
+
+    PurposeGateEvaluateRequest:
+      type: object
+      required: [assetId, declaredPurpose]
+      properties:
+        assetId:
+          type: string
+        offerId:
+          type: string
+        buyerParticipantId:
+          type: string
+        declaredPurpose:
+          type: string
+
+    PurposeGateDecision:
+      type: object
+      required: [id, assetId, declaredPurpose, allowed, createdAt, updatedAt]
+      x-dynamodb:
+        domain: COMPLIANCE
+        entityType: PURPOSE_GATE_DECISION
+        entityTypePk: PURPOSE_GATE_DECISIONS
+        pkPattern: entity
+        pkPatternTemplate: "PURPOSE_GATE_DECISION#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/PurposeGateDecisionId'
+        assetId:
+          type: string
+        offerId:
+          type: string
+        buyerParticipantId:
+          type: string
+        declaredPurpose:
+          type: string
+        allowed:
+          type: boolean
+        blockReason:
+          type: string
+          description: Hard block text when allowed=false (BR-7).
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ComplianceTagResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ComplianceTag'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    ComplianceTagListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComplianceTag'
+        nextCursor:
+          type: string
+
+    ComplianceTagListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ComplianceTagListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+
+    PurposeGateDecisionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PurposeGateDecision'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    PurposeGateDecisionListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurposeGateDecision'
+        nextCursor:
+          type: string
+
+    PurposeGateDecisionListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PurposeGateDecisionListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

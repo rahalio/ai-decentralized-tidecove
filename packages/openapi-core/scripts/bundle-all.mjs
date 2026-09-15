@@ -1,0 +1,35 @@
+import { mkdirSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = join(__dirname, '..');
+const bundled = join(root, 'src', '.bundled');
+mkdirSync(bundled, { recursive: true });
+
+const domains = [
+  'identity',
+  'assets',
+  'licences',
+  'entitlements',
+  'marketplace',
+  'keepers',
+  'settlements',
+  'participants',
+  'compliance',
+];
+
+for (const domain of domains) {
+  for (const ext of ['openapi.yaml', 'json']) {
+    const out = join(bundled, `${domain}.${ext === 'json' ? 'json' : 'openapi.yaml'}`);
+    const r = spawnSync(
+      'pnpm',
+      ['exec', 'redocly', 'bundle', domain, '--output', out],
+      { cwd: root, stdio: 'inherit', shell: process.platform === 'win32' },
+    );
+    if (r.status !== 0) process.exit(r.status ?? 1);
+  }
+}
+
+console.log(`Bundled ${domains.length} domains → src/.bundled/`);

@@ -1,0 +1,219 @@
+openapi: 3.1.0
+info:
+  title: Participants schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ParticipantId:
+      type: string
+      pattern: '^ptc_[0-9a-hjkmnp-tv-z]{26}$'
+    DisputeId:
+      type: string
+      pattern: '^dsp_[0-9a-hjkmnp-tv-z]{26}$'
+
+    Participant:
+      type: object
+      required: [id, displayName, role, vettingStatus, status, createdAt, updatedAt]
+      x-dynamodb:
+        domain: PARTICIPANTS
+        entityType: PARTICIPANT
+        entityTypePk: PARTICIPANTS
+        pkPattern: entity
+        pkPatternTemplate: "PARTICIPANT#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/ParticipantId'
+        displayName:
+          type: string
+        legalName:
+          type: string
+        role:
+          type: string
+          enum: [seller, buyer, marketplaceOperator, keeper, masher, auditor, platform]
+        jurisdiction:
+          type: string
+        vettingStatus:
+          type: string
+          enum: [unvetted, pending, vetted, rejected]
+        disputeContactEmail:
+          type: string
+          format: email
+        status:
+          type: string
+          enum: [active, suspended]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ParticipantCreate:
+      type: object
+      required: [displayName, role]
+      properties:
+        displayName:
+          type: string
+        legalName:
+          type: string
+        role:
+          type: string
+          enum: [seller, buyer, marketplaceOperator, keeper, masher, auditor, platform]
+        jurisdiction:
+          type: string
+        disputeContactEmail:
+          type: string
+          format: email
+
+    ParticipantUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        legalName:
+          type: string
+        jurisdiction:
+          type: string
+        vettingStatus:
+          type: string
+          enum: [unvetted, pending, vetted, rejected]
+        disputeContactEmail:
+          type: string
+          format: email
+        status:
+          type: string
+          enum: [active, suspended]
+
+    Dispute:
+      type: object
+      required: [id, openedByParticipantId, subjectType, subjectId, status, createdAt, updatedAt]
+      x-dynamodb:
+        domain: PARTICIPANTS
+        entityType: DISPUTE
+        entityTypePk: DISPUTES
+        pkPattern: entity
+        pkPatternTemplate: "DISPUTE#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/DisputeId'
+        openedByParticipantId:
+          type: string
+        againstParticipantId:
+          type: string
+        subjectType:
+          type: string
+          enum: [entitlement, attestation, settlement, licence]
+        subjectId:
+          type: string
+        summary:
+          type: string
+        status:
+          type: string
+          enum: [open, underReview, resolved, dismissed]
+        resolutionNotes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DisputeCreate:
+      type: object
+      required: [openedByParticipantId, subjectType, subjectId, summary]
+      properties:
+        openedByParticipantId:
+          type: string
+        againstParticipantId:
+          type: string
+        subjectType:
+          type: string
+          enum: [entitlement, attestation, settlement, licence]
+        subjectId:
+          type: string
+        summary:
+          type: string
+
+    DisputeResolve:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [resolved, dismissed]
+        resolutionNotes:
+          type: string
+
+    ParticipantResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Participant'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    ParticipantListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Participant'
+        nextCursor:
+          type: string
+
+    ParticipantListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ParticipantListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+
+    DisputeResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Dispute'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    DisputeListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dispute'
+        nextCursor:
+          type: string
+
+    DisputeListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/DisputeListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

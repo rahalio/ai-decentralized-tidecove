@@ -1,0 +1,115 @@
+openapi: 3.1.0
+info:
+  title: Settlements schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    SettlementStatementId:
+      type: string
+      pattern: '^set_[0-9a-hjkmnp-tv-z]{26}$'
+
+    SettlementLineItem:
+      type: object
+      required: [kind, amount, currency]
+      properties:
+        kind:
+          type: string
+          enum: [purchase, refund, access, marketplaceTakeRate, keeperPenalty, commonsIncentive]
+        referenceId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+
+    SettlementStatement:
+      type: object
+      required: [id, participantId, periodStart, periodEnd, currency, netAmount, createdAt, updatedAt]
+      x-dynamodb:
+        domain: SETTLEMENTS
+        entityType: SETTLEMENT_STATEMENT
+        entityTypePk: SETTLEMENT_STATEMENTS
+        pkPattern: entity
+        pkPatternTemplate: "SETTLEMENT_STATEMENT#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/SettlementStatementId'
+        participantId:
+          type: string
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        currency:
+          type: string
+        netAmount:
+          type: number
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/SettlementLineItem'
+        exportUri:
+          type: string
+          description: Audit export location when generated.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SettlementStatementCreate:
+      type: object
+      required: [participantId, periodStart, periodEnd, currency]
+      properties:
+        participantId:
+          type: string
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        currency:
+          type: string
+
+    SettlementStatementResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SettlementStatement'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    SettlementStatementListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SettlementStatement'
+        nextCursor:
+          type: string
+
+    SettlementStatementListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SettlementStatementListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

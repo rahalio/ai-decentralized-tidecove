@@ -1,0 +1,151 @@
+openapi: 3.1.0
+info:
+  title: Assets schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    AssetId:
+      type: string
+      pattern: '^ast_[0-9a-hjkmnp-tv-z]{26}$'
+
+    Asset:
+      type: object
+      required: [id, ownerParticipantId, title, storageMode, status, createdAt, updatedAt]
+      x-dynamodb:
+        domain: ASSETS
+        entityType: ASSET
+        entityTypePk: ASSETS
+        pkPattern: entity
+        pkPatternTemplate: "ASSET#${id}"
+        skPatternTemplate: "METADATA"
+        tableType: core
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: []
+      properties:
+        id:
+          $ref: '#/components/schemas/AssetId'
+        ownerParticipantId:
+          type: string
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        schemaSummary:
+          type: string
+        storageMode:
+          type: string
+          enum: [hosted, onPremise, computeOnly]
+        storagePointer:
+          type: string
+          description: Seller-controlled storage or VPC endpoint reference (BR-1).
+        gravityBound:
+          type: boolean
+          description: When true, buyers must use compute-to-data (BR-11).
+        transferabilityThresholdBytes:
+          type: integer
+          minimum: 0
+        personalData:
+          type: boolean
+          default: false
+        complianceTagIds:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, published, revoked]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AssetCreate:
+      type: object
+      required: [ownerParticipantId, title, storageMode]
+      properties:
+        ownerParticipantId:
+          type: string
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        schemaSummary:
+          type: string
+        storageMode:
+          type: string
+          enum: [hosted, onPremise, computeOnly]
+        storagePointer:
+          type: string
+        gravityBound:
+          type: boolean
+        transferabilityThresholdBytes:
+          type: integer
+          minimum: 0
+        personalData:
+          type: boolean
+        complianceTagIds:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, published]
+          default: draft
+
+    AssetUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        schemaSummary:
+          type: string
+        storagePointer:
+          type: string
+        gravityBound:
+          type: boolean
+        transferabilityThresholdBytes:
+          type: integer
+        personalData:
+          type: boolean
+        complianceTagIds:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, published, revoked]
+
+    AssetResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Asset'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    AssetListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Asset'
+        nextCursor:
+          type: string
+
+    AssetListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AssetListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+

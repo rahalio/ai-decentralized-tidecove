@@ -1,0 +1,161 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Compliance API
+  version: 0.1.0
+  description: Lawful-basis/purpose tags and purchase purpose gate (BR-7).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: cmp
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: ComplianceTags
+  - name: PurposeGate
+paths:
+  /v1/compliance-tags:
+    get:
+      operationId: listComplianceTags
+      tags: [ComplianceTags]
+      x-repository: ComplianceTag
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: assetId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./compliance.schemas.yaml#/components/schemas/ComplianceTagListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createComplianceTag
+      tags: [ComplianceTags]
+      x-repository: ComplianceTag
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./compliance.schemas.yaml#/components/schemas/ComplianceTagCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./compliance.schemas.yaml#/components/schemas/ComplianceTagResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/compliance-tags/{tagId}:
+    parameters:
+      - name: tagId
+        in: path
+        required: true
+        schema:
+          $ref: ./compliance.schemas.yaml#/components/schemas/ComplianceTagId
+    get:
+      operationId: getComplianceTag
+      tags: [ComplianceTags]
+      x-repository: ComplianceTag
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./compliance.schemas.yaml#/components/schemas/ComplianceTagResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: updateComplianceTag
+      tags: [ComplianceTags]
+      x-repository: ComplianceTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./compliance.schemas.yaml#/components/schemas/ComplianceTagUpdate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./compliance.schemas.yaml#/components/schemas/ComplianceTagResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/purpose-gate/evaluate:
+    post:
+      operationId: evaluatePurposeGate
+      tags: [PurposeGate]
+      summary: Evaluate purpose match; hard-block on mismatch (BR-7)
+      x-repository: PurposeGateDecision
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./compliance.schemas.yaml#/components/schemas/PurposeGateEvaluateRequest
+      responses:
+        '200':
+          description: Decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./compliance.schemas.yaml#/components/schemas/PurposeGateDecisionResponse
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/purpose-gate/decisions:
+    get:
+      operationId: listPurposeGateDecisions
+      tags: [PurposeGate]
+      x-repository: PurposeGateDecision
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./compliance.schemas.yaml#/components/schemas/PurposeGateDecisionListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

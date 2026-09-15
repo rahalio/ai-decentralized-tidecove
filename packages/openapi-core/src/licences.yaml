@@ -1,0 +1,155 @@
+openapi: 3.1.0
+info:
+  title: Tidecove Licences API
+  version: 0.1.0
+  description: |
+    Priced, commons, and compute-only licence offers with revoke/amend (BR-4, BR-5, BR-10).
+  license:
+    name: Proprietary
+    url: https://tidecove.local/license
+  x-domain: lic
+servers:
+  - url: https://api.tidecove.local
+security:
+  - apiKey: []
+tags:
+  - name: LicenceOffers
+paths:
+  /v1/licence-offers:
+    get:
+      operationId: listLicenceOffers
+      tags: [LicenceOffers]
+      x-repository: LicenceOffer
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: assetId
+          in: query
+          schema: { type: string }
+        - name: licenceClass
+          in: query
+          schema:
+            type: string
+            enum: [priced, commons, computeOnly]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, amended, revoked]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createLicenceOffer
+      tags: [LicenceOffers]
+      x-repository: LicenceOffer
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/licence-offers/{offerId}:
+    parameters:
+      - name: offerId
+        in: path
+        required: true
+        schema:
+          $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferId
+    get:
+      operationId: getLicenceOffer
+      tags: [LicenceOffers]
+      x-repository: LicenceOffer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: amendLicenceOffer
+      tags: [LicenceOffers]
+      summary: Amend terms for new purchases; grandfathering per offer (BR-4)
+      x-repository: LicenceOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferAmend
+      responses:
+        '200':
+          description: Amended
+          content:
+            application/json:
+              schema:
+                $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferResponse
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/licence-offers/{offerId}/revoke:
+    post:
+      operationId: revokeLicenceOffer
+      tags: [LicenceOffers]
+      summary: Revoke offer for new purchases
+      x-repository: LicenceOffer
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Revoked
+          content:
+            application/json:
+              schema:
+                $ref: ./licences.schemas.yaml#/components/schemas/LicenceOfferResponse
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

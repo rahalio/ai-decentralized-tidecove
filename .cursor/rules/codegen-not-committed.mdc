@@ -1,0 +1,14 @@
+---
+description: Never commit or push .codegen to GitHub
+globs:
+  - .codegen/**
+  - "**/.codegen/**"
+alwaysApply: true
+---
+
+# `.codegen` must never be committed
+
+- Do **not** `git add`, commit, or push `.codegen/` (or any vendored `zero_codegen` tree under it).
+- `.codegen/` is listed in `.gitignore` as a safeguard; local copies come from the `zero-apps-codegen-scaffold` baseline.
+- Before `pnpm codegen:*`, ensure a local `.codegen` exists (copy from the scaffold if missing) and run `pnpm codegen:paths`.
+- Never force-add ignored codegen paths (`git add -f .codegen`).

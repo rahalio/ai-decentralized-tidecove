@@ -1,0 +1,114 @@
+:root {
+  --color-ink: #e8f0f4;
+  --color-tide-950: #071018;
+  --color-tide-900: #0f1c28;
+  --color-tide-800: #162636;
+  --color-foam: #a8b8c4;
+  --color-harbour: #3d9ebf;
+  --color-licence: #3ddc97;
+  --color-amber: #e0a12b;
+  --color-coral: #e85d4c;
+  --color-brand: #7ec8e3;
+  --font-display: "Literata", serif;
+  --font-body: "Source Sans 3", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --motion-moor: 200ms ease-out;
+  --motion-block: 240ms ease-in;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(62, 158, 191, 0.18), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, rgba(126, 200, 227, 0.12), transparent 50%),
+    repeating-linear-gradient(
+      180deg,
+      transparent,
+      transparent 11px,
+      rgba(168, 184, 196, 0.04) 11px,
+      rgba(168, 184, 196, 0.04) 12px
+    ),
+    var(--color-tide-950);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0 0 var(--space-3);
+}
+
+p {
+  margin: 0 0 var(--space-3);
+  color: var(--color-foam);
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+@keyframes moor-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes coral-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(232, 93, 76, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(232, 93, 76, 0);
+  }
+}
+
+.moor {
+  animation: moor-in var(--motion-moor) both;
+}
+
+.block-flash {
+  animation: coral-flash var(--motion-block);
+}
